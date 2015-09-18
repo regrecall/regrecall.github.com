@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>从零单排 Java, finally &amp; return | Regrecall&#39;s Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="前几天在weibo上看到这样一个问题123456int i = 0;try &amp;#123;    return i;&amp;#125; finally &amp;#123;    i++;&amp;#125;
+这段代码返回的是什么？当时想法是 finally肯定会执行，但是这个i++, 影响到的值，应该不是return返回的那个i, return返回的i, 应该是放到了专门存放返回值的地方了，所以这段代码返回的是0。为了">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零单排 Java, finally & return">
+<meta property="og:url" content="http://yoursite.com/2014/04/05/java-fianlly-return/index.html">
+<meta property="og:site_name" content="Regrecall's Home">
+<meta property="og:description" content="前几天在weibo上看到这样一个问题123456int i = 0;try &amp;#123;    return i;&amp;#125; finally &amp;#123;    i++;&amp;#125;
+这段代码返回的是什么？当时想法是 finally肯定会执行，但是这个i++, 影响到的值，应该不是return返回的那个i, return返回的i, 应该是放到了专门存放返回值的地方了，所以这段代码返回的是0。为了">
+<meta property="og:updated_time" content="2015-09-18T15:21:57.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="从零单排 Java, finally & return">
+<meta name="twitter:description" content="前几天在weibo上看到这样一个问题123456int i = 0;try &amp;#123;    return i;&amp;#125; finally &amp;#123;    i++;&amp;#125;
+这段代码返回的是什么？当时想法是 finally肯定会执行，但是这个i++, 影响到的值，应该不是return返回的那个i, return返回的i, 应该是放到了专门存放返回值的地方了，所以这段代码返回的是0。为了">
+  
+    <link rel="alternative" href="/atom.xml" title="Regrecall&#39;s Home" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Regrecall&#39;s Home</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Don&#39;t lose your heart</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-java-fianlly-return" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2014/04/05/java-fianlly-return/" class="article-date">
+  <time datetime="2014-04-05T02:03:37.000Z" itemprop="datePublished">2014-04-05</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      从零单排 Java, finally &amp; return
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>前几天在weibo上看到这样一个问题<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> i;</span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    i++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这段代码返回的是什么？当时想法是 finally肯定会执行，但是这个i++, 影响到的值，<br>应该不是return返回的那个i, return返回的i, 应该是放到了专门存放返回值的地方了，所以<br>这段代码返回的是0。为了更深入的研究下，是否这个问题跟reference相关，毕竟int是<br>普通类型嘛，所以我就写下了如下的代码:<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">StringBuffer sb = <span class="keyword">new</span> StringBuffer(<span class="string">"11"</span>);</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> sb;</span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    sb.append(<span class="string">"22"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>果不其然，这个返回还真的是”1122”, 而非”11”, 难道真的针对reference做了<br>处理的吗？我们先反编译一下，看看到底是做了些什么事？首先我们看看普通类型的<br>那段代码的字节码是什么？<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span>:   iconst_0 <span class="comment">// push "0" 这个常量到栈里</span></span><br><span class="line"><span class="number">1</span>:   istore_0 <span class="comment">// pop 栈顶的元素 "0" 到index 0里面去</span></span><br><span class="line"><span class="number">2</span>:   iload_0  <span class="comment">// push index 0里面存的 "0" 到栈顶</span></span><br><span class="line"><span class="number">3</span>:   istore_1 <span class="comment">// pop 栈顶的元素 "0" 到index 1里面去</span></span><br><span class="line"><span class="comment">// 前面这4步就完成了我们 int i = 0 这个操作。</span></span><br><span class="line"><span class="number">4</span>:   iinc    <span class="comment">// 0, 1 对于index 0里面存的值增加1, 这时候index 1里面的值为"1"</span></span><br><span class="line"><span class="number">7</span>:   iload_1 <span class="comment">// push index 1里面存的 "0" 到栈顶</span></span><br><span class="line"><span class="number">8</span>:   ireturn <span class="comment">// pop 当前栈顶作为返回值</span></span><br><span class="line"><span class="number">9</span>:   astore_2</span><br><span class="line"><span class="number">10</span>:  iinc    <span class="number">0</span>, <span class="number">1</span></span><br><span class="line"><span class="number">13</span>:  aload_2</span><br></pre></td></tr></table></figure></p>
+<p>先容我介绍下9-13行是在干什么，这是专门针对try-finally做的<br>exception handler, 如果在try里面发生了exception，就会直接执行finnaly的代码，<br>所以这里astore_2把expcetion存下来，然后执行我们finally的代码，最后在把exception push 出去。详情可以查看<a href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-3.html" target="_blank" rel="external">Compiling finally</a></p>
+<p>所以我们先抛开9-13行不看，研究下0-8行，我们就可以发现，返回值是存在index 1里面的，然而我们做的自增操作是针对的index 0里面存的值.<br>(这里介绍下每个method frame都会有一个local variable的数组，用来存放你产生的这些local variable, 这些说的index n就是指数组里面下标为n的值), 这就是为什么我们返回值是”0”的原因。<br>接下来我们看看那段reference的字节码是说呢么？<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">0:   new     #2; //class java/lang/StringBuffer</span><br><span class="line">3:   dup        </span><br><span class="line">4:   ldc     #3; //String 11</span><br><span class="line">6:   invokespecial   #4; //Method java/lang/StringBuffer."&lt;init&gt;":(Ljava/lang/String;)V</span><br><span class="line">9:   astore_0 // pop 栈顶的元素 "11" 到index 0里面去</span><br><span class="line">10:  aload_0  // push index 0里面存的 "11" 到栈顶</span><br><span class="line">11:  astore_1 // pop 栈顶的元素 "11" 到index 1里面去</span><br><span class="line">12:  aload_0  // push index 0里面存的 "11" 到栈顶</span><br><span class="line">13:  ldc     #5; //String 22</span><br><span class="line">15:  invokevirtual   #6; //Method java/lang/StringBuffer.append:(Ljava/lang/String;)Ljava/lang/StringBuffer;</span><br><span class="line">18:  pop      // pop 当前的栈顶元素</span><br><span class="line">19:  aload_1 </span><br><span class="line">20:  areturn</span><br><span class="line">21:  astore_2</span><br><span class="line">22:  aload_0</span><br><span class="line">23:  ldc     #5; //String 22</span><br><span class="line">25:  invokevirtual   #6; //Method java/lang/StringBuffer.append:(Ljava/lang/String;)Ljava/lang/StringBuffer;</span><br><span class="line">28:  pop</span><br><span class="line">29:  aload_2</span><br><span class="line">30:  athrow</span><br></pre></td></tr></table></figure></p>
+<p>跟我们前面的分析相同，21-30是处理exception的finally的代码，我们暂且不看，我们主要是看0-20行的字节码，会发现其实这段字节码，<br>跟我们分析的int的那段字节码是雷同的，同样是return的是index 1里面的数据，但是做StringBuffer操作的是index 0的数据，那么为什么<br>这段返回的”1122”呢？</p>
+<p>原因在于这个astore指令了，这个指令跟istore不同这处在于，它存储的objectref的这种类型(有2种objectref类型，一种是reference, 另外一种是returnAddress)的数据，看到存的是reference，或许你已经明白为什么了，我们修改了index 0里面的reference值，自然就反应到存着相同reference的index 1里面去了，所以我们返回的值会是 “1122”.</p>
+<h1 id="Summary">Summary</h1><p>这次给大家带来的是关于，try-finally的代码的分析，希望大家对于try-finally有更深刻的认识, 并且可以认识一些基本的<br>jvm的指令.下面是关于这篇文章的引用到资源来源：</p>
+<p><a href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-3.html" target="_blank" rel="external">1. Compiling finally</a></p>
+<p><a href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-2.html#jvms-2.6" target="_blank" rel="external">2. The Structure of the Java Virtual Machine</a></p>
+<p><a href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html" target="_blank" rel="external">3. The Java Virtual Machine Instruction Set</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2014/04/05/java-fianlly-return/" data-id="cieptkbdx000h1p04a4ntffke" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2014/04/09/java-executor-framework/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          从零单排 Java Concurrency, Executor 和 它的小伙伴
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2014/03/30/java-concurrency-threadlocal/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">从零单排 Java Concurrency, ThreadLocal</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kafka/">Kafka</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/06/">June 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/03/">March 2014</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2015/08/16/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2015/03/30/kafka-in-action-1/">Kafka In Action 1</a>
+          </li>
+        
+          <li>
+            <a href="/2015/03/16/java-concurrency-concurrentskiplistmap/">从零单排 Java Concurrency, SkipList&amp;ConcurrnetSkipListMap</a>
+          </li>
+        
+          <li>
+            <a href="/2014/06/24/wait-notify/">从零单排 Java concurrency, wait &amp; notify</a>
+          </li>
+        
+          <li>
+            <a href="/2014/05/12/synchronized-and-lock/">从零单排 Java Concurrency, Synchronized and Lock</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 Reg Wang<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>

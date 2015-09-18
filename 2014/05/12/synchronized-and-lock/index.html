@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>从零单排 Java Concurrency, Synchronized and Lock | Regrecall&#39;s Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="这一篇给大家带来的是并发编程里面用的基础的2个东西，Synchronized 和 Lock, 他们两个都是提供了锁的能力
+
+当一个线程正在操作这个锁的时候，其他线程只能等待，排他性
+当一个线程完成了操作，其他执行Happen-before原则，保证可见性.那他们有什么不同呢，还有那些特点呢？首先我们先来看下Sychronized
+
+Sychronized我们最常用的Sychronized的地方,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零单排 Java Concurrency, Synchronized and Lock">
+<meta property="og:url" content="http://yoursite.com/2014/05/12/synchronized-and-lock/index.html">
+<meta property="og:site_name" content="Regrecall's Home">
+<meta property="og:description" content="这一篇给大家带来的是并发编程里面用的基础的2个东西，Synchronized 和 Lock, 他们两个都是提供了锁的能力
+
+当一个线程正在操作这个锁的时候，其他线程只能等待，排他性
+当一个线程完成了操作，其他执行Happen-before原则，保证可见性.那他们有什么不同呢，还有那些特点呢？首先我们先来看下Sychronized
+
+Sychronized我们最常用的Sychronized的地方,">
+<meta property="og:image" content="http://yoursite.com/images/648-374Lock.jpg">
+<meta property="og:updated_time" content="2015-09-18T15:21:57.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="从零单排 Java Concurrency, Synchronized and Lock">
+<meta name="twitter:description" content="这一篇给大家带来的是并发编程里面用的基础的2个东西，Synchronized 和 Lock, 他们两个都是提供了锁的能力
+
+当一个线程正在操作这个锁的时候，其他线程只能等待，排他性
+当一个线程完成了操作，其他执行Happen-before原则，保证可见性.那他们有什么不同呢，还有那些特点呢？首先我们先来看下Sychronized
+
+Sychronized我们最常用的Sychronized的地方,">
+  
+    <link rel="alternative" href="/atom.xml" title="Regrecall&#39;s Home" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Regrecall&#39;s Home</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Don&#39;t lose your heart</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-synchronized-and-lock" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2014/05/12/synchronized-and-lock/" class="article-date">
+  <time datetime="2014-05-12T09:08:18.000Z" itemprop="datePublished">2014-05-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      从零单排 Java Concurrency, Synchronized and Lock
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>这一篇给大家带来的是并发编程里面用的基础的2个东西，Synchronized 和 Lock, 他们两个都是提供了锁的能力</p>
+<ul>
+<li>当一个线程正在操作这个锁的时候，其他线程只能等待，排他性</li>
+<li>当一个线程完成了操作，其他执行Happen-before原则，保证可见性.<br>那他们有什么不同呢，还有那些特点呢？首先我们先来看下Sychronized</li>
+</ul>
+<h1 id="Sychronized">Sychronized</h1><p>我们最常用的Sychronized的地方, 就是同步方法和同步块，当一个线程进入同步区域的时候，会自动获得这个锁，当它离开同步区域的时候，就会释放掉这个锁。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">doSomething</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">doSomething</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>同步方法，当作用在实例方法时，锁是加在当前的instance(this)上面的，当作用在静态(static)方法时，锁是加在class上面的，所以是有可能并行的进入Java实例同步方法和静态同步方法的。<br>同时Sychronized是可以重入的，所以当我们在同步方法里面调用同一个锁的另外一个同步方法时，当前线程是可以直接进入这个同步方法，而不需要重新再去请求这个锁。下面我们来看看同步块的用法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">private</span> Object lock = <span class="keyword">new</span> Object();</span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doSomething</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       <span class="keyword">synchronized</span> (lock) &#123;</span><br><span class="line">           </span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>不难看出这样做的好处在于减小了锁的粒度，当我们只是对于方法的小部分进行同步的时候，没有必要去把整个类实例锁住，<br>我们要做的是，申请一个新的实例，用它来锁住我们方法里面的需要同步的区域。</p>
+<h1 id="Lock_VS_Sychronized">Lock VS Sychronized</h1><p>基本上你用得到Sychronized的地方，都可以用Lock的，所以我们这里就直接以对比的方式来介绍下Lock.</p>
+<h2 id="更灵活结构">更灵活结构</h2><p>当我们用Sychronized的时候，要求了获得和释放锁都是必须在block结构里面，所以语法上，必须是在同一个范围内，<br>Lock就不一样了，Lock.lock() 获得锁，和 Lock.unlock() 释放锁是可以不在同一个范围内的，就像Api文档里面说的例子一样，<br>在某些算法里面，并行的遍历某些节点的时候，先lock 节点A, 节点B, 然后 release 节点A, 再lock 节点C, 这样的需求，<br>以Sychronized那种块式结构是无法完成。<br>Lock增加灵活性，总会是有代价的，这个代价就是我们失去自动释放锁的能力，我们必须自己来释放锁, 最好是用try-finally来确保你的锁能够得到释放。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">remainingCapacity</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> ReentrantLock lock = <span class="keyword">this</span>.lock;</span><br><span class="line">    lock.lock();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> capacity - count;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="公平性">公平性</h2><p>Sychronized是没有保证线程进入同步块的顺序的，所以就可能导致饥饿的产生，有些线程一直都在等待，因为有其他线程都抢在它之前进入了同步块。其实要做到公平，原理也很简单，只要每次调用lock的时候，把当前线程保存起来，在唤醒的时候，通过一定的算法<br>选择适当的线程唤醒就可以了。Lock就是公平的，下面是RenetrantLock的构造函数，我们可以看到它接受一个是否公平的参数，来决定是否用公平策略。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ReentrantLock(<span class="keyword">boolean</span> fair)</span><br><span class="line">Creates an instance of ReentrantLock with the given fairness policy.</span><br></pre></td></tr></table></figure></p>
+<h2 id="中断的能力">中断的能力</h2><p>Sychronized当一个线程进入同步块之后，我们是不能控制的，死锁或者饥饿，我们都是没有办法处理的，<br>Lock就提供了中断的能力，lockInterruptibly，trylock的函数，让我们更能控制我们的锁。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (lock.tryLock(time, TimeUnit.MILLISECONDS))</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 获得锁</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// doSomething</span></span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="comment">// 确保最后释放</span></span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 已经有人获得这个锁了。</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="读写锁">读写锁</h2><p>Sychronized, 保证同一时间只有一个线程能够进入同步局域，如果想要并发的读取同步局域的资源，<br>也是不行的，你必须要等待其他线程释放这个锁才行。这时候读写锁就产生了，ReadWriteLock, 他能让对个读的线程<br>并发的进入同步区域。</p>
+<p>下面是Lock package里面的各个类的依赖关系<br><img src="/images/648-374Lock.jpg" class="center" width="600" height="300"></p>
+<h1 id="Summary">Summary</h1><p>这里对比了Sychronized和Lock的差异，一般简单的锁，我们就直接运用Sychronized就可以，如果为了公平，中断，读写的能力<br>我们就可以用Lock来给我们进行保证。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2014/05/12/synchronized-and-lock/" data-id="cieptkbdo000b1p04br8pvv8r" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2014/06/24/wait-notify/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          从零单排 Java concurrency, wait &amp; notify
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2014/04/19/java-concurrency-threadpoolexecutor/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">从零单排 Java Concurrency, 线程池, ThreadPoolExecutor实现与用法</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kafka/">Kafka</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/06/">June 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/03/">March 2014</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2015/08/16/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2015/03/30/kafka-in-action-1/">Kafka In Action 1</a>
+          </li>
+        
+          <li>
+            <a href="/2015/03/16/java-concurrency-concurrentskiplistmap/">从零单排 Java Concurrency, SkipList&amp;ConcurrnetSkipListMap</a>
+          </li>
+        
+          <li>
+            <a href="/2014/06/24/wait-notify/">从零单排 Java concurrency, wait &amp; notify</a>
+          </li>
+        
+          <li>
+            <a href="/2014/05/12/synchronized-and-lock/">从零单排 Java Concurrency, Synchronized and Lock</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 Reg Wang<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>

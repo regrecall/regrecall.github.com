@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>从零单排 Java Concurrency, Executor 和 它的小伙伴 | Regrecall&#39;s Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="这篇主要为大家带来的是Executor框架的介绍，让大家知道Executor为什么出现，我们该怎么用好它，以及Executor的一些小伙伴。
+Executor的产生在我看来为什么会有Executor的产生，其实是随着业务的不断发展而来的，以前当我们提交任务的代码和我们处理这些任务代码逻辑简单，我们就把他们揉在一起，可是业务越来越复杂，我们有了自己的一些处理这些任务的逻辑了，就逼得我们把原来的代码差">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零单排 Java Concurrency, Executor 和 它的小伙伴">
+<meta property="og:url" content="http://yoursite.com/2014/04/09/java-executor-framework/index.html">
+<meta property="og:site_name" content="Regrecall's Home">
+<meta property="og:description" content="这篇主要为大家带来的是Executor框架的介绍，让大家知道Executor为什么出现，我们该怎么用好它，以及Executor的一些小伙伴。
+Executor的产生在我看来为什么会有Executor的产生，其实是随着业务的不断发展而来的，以前当我们提交任务的代码和我们处理这些任务代码逻辑简单，我们就把他们揉在一起，可是业务越来越复杂，我们有了自己的一些处理这些任务的逻辑了，就逼得我们把原来的代码差">
+<meta property="og:image" content="http://yoursite.com/images/executor_380_320.jpg">
+<meta property="og:updated_time" content="2015-09-18T15:21:57.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="从零单排 Java Concurrency, Executor 和 它的小伙伴">
+<meta name="twitter:description" content="这篇主要为大家带来的是Executor框架的介绍，让大家知道Executor为什么出现，我们该怎么用好它，以及Executor的一些小伙伴。
+Executor的产生在我看来为什么会有Executor的产生，其实是随着业务的不断发展而来的，以前当我们提交任务的代码和我们处理这些任务代码逻辑简单，我们就把他们揉在一起，可是业务越来越复杂，我们有了自己的一些处理这些任务的逻辑了，就逼得我们把原来的代码差">
+  
+    <link rel="alternative" href="/atom.xml" title="Regrecall&#39;s Home" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Regrecall&#39;s Home</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Don&#39;t lose your heart</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-java-executor-framework" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2014/04/09/java-executor-framework/" class="article-date">
+  <time datetime="2014-04-09T14:49:37.000Z" itemprop="datePublished">2014-04-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      从零单排 Java Concurrency, Executor 和 它的小伙伴
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>这篇主要为大家带来的是Executor框架的介绍，让大家知道Executor为什么出现，我们该怎么用好它，以及Executor的一些小伙伴。</p>
+<h1 id="Executor的产生">Executor的产生</h1><p>在我看来为什么会有Executor的产生，其实是随着业务的不断发展而来的，以前当我们提交任务的代码和我们处理这些任务代码逻辑简单，我们就把他们揉在一起，可是业务越来越复杂，我们有了自己的一些处理这些任务的逻辑了，就逼得我们把原来的代码差分，就有了Executor，回忆起以前做的一个objc上管理与服务器交互的transaction的内容的dispatcher, 其实是跟Executor类似，开始没有什么并发的要求, 没有什么优先级，没有什么特殊处理，没有什么超时，没有什么shutdown的时候，就是一个简单的FIFO的队列，后来慢慢加入这些策略，就产生现在的框架. Executor就是为了解耦任务提交和任务执行策略产生的.</p>
+<h1 id="Executor的使用">Executor的使用</h1><p>我们首先来看看Executor的接口<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Executor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">execute</span><span class="params">(Runnable command)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里Executor负责的就是如何执行这些任务，我们可以直接同步串行的执行。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DirectExecutor</span> <span class="keyword">implements</span> <span class="title">Executor</span> </span>&#123;</span><br><span class="line">    <span class="annotation">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">execute</span><span class="params">(Runnable command)</span> </span>&#123;</span><br><span class="line">        command.run();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>当然这样就失去了我们的性能，如果这个任务是一些I/O相关的操作，这样只会让CPU闲置。<br>于是我们就加入异步执行，为每个任务都分配一个线程。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Exectuor</span> <span class="keyword">implements</span> <span class="title">Executor</span> </span>&#123;</span><br><span class="line">    <span class="annotation">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">execute</span><span class="params">(Runnable command)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> Thread(command).run();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>问题又来了，因为Thread的创建和销毁代价还是挺大的，还有可能造成有大量的Thread闲置，<br>这也是一种浪费，同时也对垃圾回收也带来了压力。<br>线程池就孕育而生了，它用来管理一个装有工作线程的池子，并且实现了重用线程池里面闲置的线程，<br>还有任务的调度。Executors的工程方法给我们提供了创建这样的线程池的Executor, 这里主要对比下<br>newFixedThreadPool, newCachedThreadPool, 不同的是newCachedThreadPool里面线程池大小是不固定的，而<br>newFixedThreadPool里面的线程池大小是固定的，newCachedThreadPool中的线程空闲时间超过60s就会从线程池里面移除，而newFixedThreadPool里的空闲线程是不会被移除的。newCachedThreadPool更像个集结点(因为它的task queue的实现是用的SynchronousQueue)，消费里面的task的线程，是按需要创建的，根本停不下来呀，newCachedThreadPool适合去执行数量多但是存活时间短的任务。当然除了Executors给我们提供的Factory构造的线程池，我们也可以用ThreadPoolExecutor来配置我们自己的线程池。</p>
+<h1 id="Future">Future</h1><img src="/images/executor_380_320.jpg" class="center" width="380" height="320">
+<p>我们从上图可以看见ExecutorService接口继承了Executor接口，它为Executor带来的是对于Executor的生命周期的控制，实现这个接口，我们就可以shutdown我们的Executor了，还给我们带来Future。</p>
+<h2 id="什么是Future？">什么是Future？</h2><p>Future代表的是一个异步计算的结果，我们可以通过方法，去判断是否计算已经结束，或者是等待他计算完成，并且得到结果。当我们每次向ExecutorServce提交一个Callable(Callable 比起 Runnable，我们可以得到返回值，并且还可以catch住Callable的exception)的时候，我们可以得到一个Future对象，这时候我们可以做一堆其他事情，然后再回来调用Future的get方法，得到这次Callable的结果。比如我们有一堆需要并行跑的一些模型，等我们提交了我们跑模型任务后，我们再做一堆其他计算，并且等待异步模型跑完的结果, 最后调用我们存下来的一堆Future对象的get方法，得到我们需要的值。看了Concurrency In Practice，才知道还有CompletionService，这样的好货色，有了它，我们就有一个BlockingQueue在Executor里面，这样对于调用者就不需要hold住Future了，只需要直接去CompletionService里面去take出来，当每个Future完成时，就直接取到，如果没有完成，就会在哪里等待。</p>
+<h1 id="Summary">Summary</h1><p>这次只是向大家简单介绍了下Executor的由来和一些基本用法，以及Future一些用法，接下来的有一系列的BlocingQueue, ThreadPool池的源码分析。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2014/04/09/java-executor-framework/" data-id="cieptkbdu000f1p040w1ijfeg" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2014/04/19/java-concurrency-threadpoolexecutor/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          从零单排 Java Concurrency, 线程池, ThreadPoolExecutor实现与用法
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2014/04/05/java-fianlly-return/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">从零单排 Java, finally &amp; return</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kafka/">Kafka</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/06/">June 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/03/">March 2014</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2015/08/16/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2015/03/30/kafka-in-action-1/">Kafka In Action 1</a>
+          </li>
+        
+          <li>
+            <a href="/2015/03/16/java-concurrency-concurrentskiplistmap/">从零单排 Java Concurrency, SkipList&amp;ConcurrnetSkipListMap</a>
+          </li>
+        
+          <li>
+            <a href="/2014/06/24/wait-notify/">从零单排 Java concurrency, wait &amp; notify</a>
+          </li>
+        
+          <li>
+            <a href="/2014/05/12/synchronized-and-lock/">从零单排 Java Concurrency, Synchronized and Lock</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 Reg Wang<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>

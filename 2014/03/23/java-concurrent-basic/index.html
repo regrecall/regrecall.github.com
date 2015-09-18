@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>从零单排 Java Concurrency, 基础篇 | Regrecall&#39;s Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="这是介绍Java Concurrent一系列文章的第一篇，会给大家带来的是一些并发的基础知识，以及并发给我们带来的好处和一些问题，以及问题解决方案.
+Concurrency(并发) &amp;amp; Parallelism(并行)首先我们遇到的第一个问题就是什么是Concurrent(并发)?并发: 一个处理器”同时”处理多个任务。在一个单核系统上处理多线程，处理器调度其他资源去执行其他线程，我们总不希">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零单排 Java Concurrency, 基础篇">
+<meta property="og:url" content="http://yoursite.com/2014/03/23/java-concurrent-basic/index.html">
+<meta property="og:site_name" content="Regrecall's Home">
+<meta property="og:description" content="这是介绍Java Concurrent一系列文章的第一篇，会给大家带来的是一些并发的基础知识，以及并发给我们带来的好处和一些问题，以及问题解决方案.
+Concurrency(并发) &amp;amp; Parallelism(并行)首先我们遇到的第一个问题就是什么是Concurrent(并发)?并发: 一个处理器”同时”处理多个任务。在一个单核系统上处理多线程，处理器调度其他资源去执行其他线程，我们总不希">
+<meta property="og:image" content="http://yoursite.com/images/Java-Memory-Model.png">
+<meta property="og:updated_time" content="2015-09-18T15:21:57.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="从零单排 Java Concurrency, 基础篇">
+<meta name="twitter:description" content="这是介绍Java Concurrent一系列文章的第一篇，会给大家带来的是一些并发的基础知识，以及并发给我们带来的好处和一些问题，以及问题解决方案.
+Concurrency(并发) &amp;amp; Parallelism(并行)首先我们遇到的第一个问题就是什么是Concurrent(并发)?并发: 一个处理器”同时”处理多个任务。在一个单核系统上处理多线程，处理器调度其他资源去执行其他线程，我们总不希">
+  
+    <link rel="alternative" href="/atom.xml" title="Regrecall&#39;s Home" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Regrecall&#39;s Home</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Don&#39;t lose your heart</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-java-concurrent-basic" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2014/03/23/java-concurrent-basic/" class="article-date">
+  <time datetime="2014-03-23T05:59:40.000Z" itemprop="datePublished">2014-03-23</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      从零单排 Java Concurrency, 基础篇
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>这是介绍Java Concurrent一系列文章的第一篇，会给大家带来的是一些并发的基础知识，<br>以及并发给我们带来的好处和一些问题，以及问题解决方案.</p>
+<h1 id="Concurrency(并发)_&amp;_Parallelism(并行)">Concurrency(并发) &amp; Parallelism(并行)</h1><p>首先我们遇到的第一个问题就是什么是Concurrent(并发)?<br>并发: 一个处理器”同时”处理多个任务。在一个单核系统上处理多线程，处理器调度其他资源去执行其他线程，我们总不希望一直去等待一个I/O操作。就好像一个魔术师可能同时操作N个<br>球，但是你明明知道他就只是一个人。</p>
+<p>那么什么是Parallelism(并行)?</p>
+<p>并行: 多个处理器”同时”处理多个任务。在一个多核的系统上处理多线程，每个线程都能跑在一个<br>处理器上在一时刻。就好像N个魔术师操作N个球，同时每个人操作一个球。</p>
+<p>就像大神”Rob Pike”说的那样”Concurrency provides a way to structure a solution to solve a problem that may (but not necessarily) be parallelizable.” Concurrency对于我们编码有有一定的要求，因为我们是自己构造一种解决方案为了<br>能够”同时”处理多个任务。</p>
+<h1 id="Concurrency(并发)_好处和问题">Concurrency(并发) 好处和问题</h1><p>最大的好处我认为是，并发让我们减少了单个任务的等待时间。特别表现在I/O上，如果当我们去写一个超大的文件时，<br>总不能让闲下来的那些家伙没事做呀。如果一个server只能同一时间处理一个请求，而让其他请求等待，那么就没有人愿意上网了。<br>当我们有多个CPU核的时候，Concurrency(并发)就可以让我们充分利用其资源了。<br>问题也同样也来了，主要是指多线程并发带来的问题：<br><br></p>
+<ul>
+<li><p>访问冲突，因为内存都是共享的，多个线程都可以访问同一块内存地址，如果我们不好好控制，冲突就会发生，<br>最突出的问题，在于各个线程读到了脏数据。</p>
+</li>
+<li><p>锁竞争问题，有了冲突，我们就要去保护共享的内容，通常的做法，就是给共享内容加上锁。锁带给我们的问题，<br>主要是2个，一个是死锁，A thread 等待B thread释放资源，但是B却一直在等待A释放资源，这样的结果就导致<br>资源永远释放不到，最后机器崩溃掉。另外一个显著问题是锁的粒度问题，比如说一段cache代码，他从数据库取数据<br>就开始加锁，一直到更新cache结束。这样会有什么问题呢？锁的粒度太大了，居然把去取数据的操作也加锁了，导致<br>非常多的线程在等待，最坏结果就机器响应速度下降，内存被撑爆。</p>
+</li>
+<li><p>上下文切换，内存拷贝的开销，这些都会使得性能下降，</p>
+</li>
+</ul>
+<p>问题与好处并存，就使得我们在编写concurrency代码时，要时刻小心，时刻问下自己会不会发生上面的问题。</p>
+<h1 id="线程安全">线程安全</h1><p>下面我们就介绍一下我们是怎样保证线程安全的。</p>
+<h2 id="Java_内存模型">Java 内存模型</h2><p>在介绍线程安全之前，我们有必要了解下Java内存模型是怎么样的，只有知道了内存模型，我们才知道我们如何保证多线程下<br>访问内存是安全的.</p>
+<img src="/images/Java-Memory-Model.png" class="center">
+<p>Java 规定了每个thread都可以有个Work Memory, Main Memory就是我们用-Xmx指定的Heap的大小，<br>当线程需要从Main Memory读取某个变量的时候，线程就用load指令来完成，线程如果修改了这个变量，<br>那么线程就会用save指令把这个变量重写到Main Memory里面，这里我们就会发现问题了，当我们多个线程<br>操作同一个变量的时候就会出现问题。这时候我们就需要用到一些策略来保证数据的可见性和原子性。</p>
+<h2 id="Happen-Before_原则">Happen-Before 原则</h2><p>指令重排，就是指指令执行顺序可能会与代码的顺序不一致，为什么需要指令重排，指令重排意义在于： JVM能够根据处理器的特征(CPU的多级缓存系统)<br>适当的重新排列机器指令，使得机器指令更符合CPU的执行特点，最大限度的发挥机器的性能。</p>
+<p>就算指令重排了，我们也要利用一些原则来保证某些事件之间的关系，这样才让我们实现线程安全。这就是Happen-before原则</p>
+<ul>
+<li>同一个线程中的每个Action都happens-before于出现在其后的任何一个Action.</li>
+<li>对象监视器的解锁发生在等待获取该锁的线程获得锁之前</li>
+<li>volatile变量写入操作happens-before该变量后一个读取。</li>
+<li>如果A action happens-before B action, 而 B action happens-before C action, 那么A action 一定happens-before C action.</li>
+</ul>
+<p>我们就可以利用Happens-before原则，来保证我们线程安全性，<br>Java 提供了一些工具保证Happens-before原则, 如： synchronized, volatile, final, 和 java.util.concurreny包下面的工具。</p>
+<p>这些工具的基础就是Memory Barrier(内存屏障), 内存屏障是一组屏障指令让CPU或者编译器，强制要求某些操作必须发生在屏障之前，<br>而其他操作必须发生在屏障之后，这样上层就可以利用内存屏障来实现Happens-before.</p>
+<h2 id="变量可见性问题">变量可见性问题</h2><p>下面有一段代码，我们可以想想到底这段代码会打印什么样的结果。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Visibility</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">boolean</span> ready;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> result;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">WorkThread</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">        <span class="annotation">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">while</span>(!ready) &#123;</span><br><span class="line">                Thread.yield();</span><br><span class="line">            &#125;</span><br><span class="line">            System.out.println(result);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> WorkThread().start();</span><br><span class="line">        result = <span class="number">1</span>;</span><br><span class="line">        ready = <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>打印 1，这是很容易想到的一个结果，主线程修改了result = 1, WorkThread读到这样的值，然后打印出来。</li>
+<li>打印 0，为什么是0呢？ 想想我们的代码重排，很有可能ready = true就被派到了result = 1之前，这时候WorkThread<br>正好读到ready = true, 输出result 0.</li>
+<li>一直不退出，可能有些同学已经想到了原因，当WorkThread把ready load进自己的work memory之后，就不去读main memory里面<br>已经被更新的值，所以就一直不退出。</li>
+</ul>
+<p>这就是变量可见性的问题，多个线程能否都能查看的main memory里的变量的变化。</p>
+<h1 id="volatile_&amp;_锁_&amp;_concurrentHashMap">volatile &amp; 锁 &amp; concurrentHashMap</h1><p>上面那个变量可见性的问题，我们就可以通过volatile 来设置给ready, 这样就可以保证程序一定会退出。<br>volatile的原理</p>
+<ul>
+<li>volatile是轻量级的同步，Java内存模型不会对volatile指令进行重排，这个保证了对volatile变量的操作时按照指令出现<br>顺序执行的。</li>
+<li>volatile的变量不会被放到CPU cache里面的，每次总是从main memory读取volatile变量的结果，所以其他线程总是可以看见<br>这个修改，并不是使用自己Thread work memory里面的。</li>
+<li>volatile保证变量的可见性，但是没有保证原子性.</li>
+</ul>
+<p>Java 锁机制， Java 提供了很多锁， sychronized block, object.lock(), reentrantLock(可重入锁), Semaphore(信号量),<br>CAS(乐观锁)。<br>在这里主要介绍一些sychronized block的内容，当我们sychronized的一个setter方法了，另外个线程还可以get吗？<br>是不行的，因为我们给一个instance method加锁的时候，就是对于这个object加锁了。那当我们对于一个static 方法加锁的时候，<br>又是给什么加锁呢？这时候我们就是为这个class加了锁。</p>
+<p>ConcurrentHashMap, 我们知道Hashmap是不安全，HashTable是线程安全的，那为什么需要ConcurrentHashMap?<br>因为HashTable实现太简单了，直接给整个table加上锁，这样所的粒度比较大，性能肯定会差，ConcurrentHashMap就是<br>利用降低锁的粒度来完成，ConcurrentHashMap会有多个segment, 每个segment下面才是多个key-value HashEntry组合，这样<br>对于某些key的锁，就可以加在它相应的segment上面了，从而降低了锁的粒度，这样就只能保证了弱一致性，各个线程看到的<br>map里面数据是不一定一致的。</p>
+<p>这里只是简单的介绍了下sychronized block和ConcurrentHashMap, 以后的文章中会对锁和还有java.util.concurrent包下面的工具<br>做详细的讲解。</p>
+<h1 id="Summary">Summary</h1><p>这篇blog主要是为大家带来concurrency的含义，以及它的好处，和相应的问题，在我看来好处就是提高性能，问题就是增加<br>我们编码的难度，需要思考的东西变多。接下来是关于Java Concurreny的一些topic, Java的main memory 和 work memory,<br>以及保证concurrency的happens-before原则，以及Java给我们带来的控制并发的工具volatile，锁以及concurrent包，接下来<br>会给大家带来concurrency的一些实践。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2014/03/23/java-concurrent-basic/" data-id="cieptkbcf00001p04q4k4vz34" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2014/03/30/java-concurrency-threadlocal/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          从零单排 Java Concurrency, ThreadLocal
+        
+      </div>
+    </a>
+  
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kafka/">Kafka</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">March 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/06/">June 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/03/">March 2014</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2015/08/16/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2015/03/30/kafka-in-action-1/">Kafka In Action 1</a>
+          </li>
+        
+          <li>
+            <a href="/2015/03/16/java-concurrency-concurrentskiplistmap/">从零单排 Java Concurrency, SkipList&amp;ConcurrnetSkipListMap</a>
+          </li>
+        
+          <li>
+            <a href="/2014/06/24/wait-notify/">从零单排 Java concurrency, wait &amp; notify</a>
+          </li>
+        
+          <li>
+            <a href="/2014/05/12/synchronized-and-lock/">从零单排 Java Concurrency, Synchronized and Lock</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 Reg Wang<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+
+  </div>
+</body>
+</html>
